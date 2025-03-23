@@ -1,0 +1,5 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <text x="1.5" y="11" fill="#FFA500" font-family="Arial" font-weight="bold" font-size="10">{</text>
+  <text x="5.75" y="11" fill="#FFA500" font-family="Arial" font-weight="bold" font-size="10">:</text>
+  <text x="9.5" y="11" fill="#FFA500" font-family="Arial" font-weight="bold" font-size="10">}</text>
+</svg>
