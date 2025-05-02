@@ -1,0 +1,182 @@
+.je-icon {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+  background: #FFA500;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  z-index: 2147483646;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  user-select: none;
+}
+
+.je-icon::after {
+  content: "{:}";
+  font-size: 12px;
+  font-weight: bolder;
+  font-family: monospace;
+}
+
+.je-popup {
+  position: fixed;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  overflow: auto;
+  z-index: 2147483647;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: #333;
+  background-color: #f8f9fa;
+  transition: transform 0.05s ease-out;
+  max-height: calc(100vh - 60px);
+  max-width: calc(100vw - 60px);
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Add responsive sizing for smaller screens */
+@media screen and (max-width: 600px) {
+  .je-popup {
+    max-width: calc(100vw - 20px);
+    font-size: 12px;
+  }
+}
+
+/* Position variants for the popup */
+.je-popup.position-bottom {
+  transform-origin: top center;
+  margin-top: 10px;
+}
+
+.je-popup.position-top {
+  transform-origin: bottom center;
+  margin-bottom: 10px;
+}
+
+.je-popup.position-right {
+  transform-origin: left center;
+  margin-left: 10px;
+}
+
+.je-popup.position-left {
+  transform-origin: right center;
+  margin-right: 10px;
+}
+
+/* Animation for popup appearance */
+.je-popup.showing {
+  animation: popupFadeIn 0.05s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.je-error {
+  color: #d93025;
+  padding: 8px;
+  background-color: #fce8e6;
+  border-radius: 4px;
+}
+
+/* Only prevent text selection on icon */
+.je-icon {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Add subtle border and shadow variations based on position */
+.je-popup.position-bottom {
+  border-top-width: 2px;
+}
+
+.je-popup.position-top {
+  border-bottom-width: 2px;
+}
+
+.je-popup.position-right {
+  border-left-width: 2px;
+}
+
+.je-popup.position-left {
+  border-right-width: 2px;
+}
+
+.je-copy-button {
+  position: sticky;
+  top: 0;
+  right: 0;
+  float: right;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  opacity: 0.9;
+  color: #FFA500;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  z-index: 2147483648;
+  padding: 0;
+}
+
+.je-header {
+  position: sticky;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 2147483648;
+}
+
+.je-content {
+  margin: -16px 0 0 0;
+}
+
+/* Update icon size */
+.je-copy-button svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.je-copy-button:hover {
+  background: transparent;
+  opacity: 1;
+}
+
+.je-copy-button.copied {
+  color: #34a853;
+}
+
+.je-copy-button:active {
+  transform: scale(0.95);
+}
+
+/* Icon styles */
+.je-copy-button svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
