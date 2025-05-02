@@ -1,19 +1,27 @@
 {
   "manifest_version": 3,
-  "name": "JSON Easy",
+  "name": "JSON Easy: View any JSON, even the messy kind, directly in web pages",
   "version": "1.0",
-  "description": "View beautified JSON strings on web pages",
-  "permissions": ["contextMenus", "activeTab", "scripting"],
+  "description": "Select JSON text on any website to instantly view a clean, parsed version in a floating popup.",
+  "permissions": [
+    "contextMenus",
+    "scripting",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": ["styles.css"],
+      "js": ["libs/json5.min.js", "content.js"],
+      "all_frames": true,
+      "run_at": "document_end"
+    }
+  ],
   "background": {
     "service_worker": "background.js"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
   },
   "icons": {
     "16": "icons/icon16.png",
