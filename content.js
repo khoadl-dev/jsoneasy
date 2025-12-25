@@ -9,6 +9,7 @@ class JSONEasy {
     this.popup = null;
     this.selectionTimeout = null;
     this.hidePopupButton = false;
+    this.lastSelectedText = ''; // Store selection when icon is created
     this.loadSettings();
     this.setupEventListeners();
   }
@@ -25,18 +26,19 @@ class JSONEasy {
     document.addEventListener('mouseup', (e) => {
       // Don't handle selections inside the popup
       if ((this.popup && (this.popup === e.target || this.popup.contains(e.target))) ||
-          (this.icon && (this.icon === e.target))) {
+        (this.icon && (this.icon === e.target))) {
         return;
       }
       this.handleSelection(e);
     });
-    
+
     // Handle clicks at the document level
     document.addEventListener('click', (e) => {
       // If clicking the icon, show popup
       if (e.target === this.icon) {
         e.stopPropagation();
-        const selection = window.getSelection().toString().trim();
+        // Use persisted text if available, fallback to current selection
+        const selection = this.lastSelectedText || window.getSelection().toString().trim();
         this.showPopup(selection);
         return;
       }
@@ -75,7 +77,7 @@ class JSONEasy {
   async loadSettings() {
     const result = await chrome.storage.local.get('hidePopupButton');
     this.hidePopupButton = result.hidePopupButton || false;
-    
+
     // Listen for settings changes
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === 'local' && changes.hidePopupButton) {
@@ -101,13 +103,39 @@ class JSONEasy {
     // Set new timeout
     this.selectionTimeout = setTimeout(() => {
       const selection = window.getSelection();
-      const selectedText = selection.toString().trim();
+      const selectedText = this.getTextFromSelection(selection);
 
-      if (selectedText === '') return;
+      if (selectedText === '') {
+        this.lastSelectedText = '';
+        return;
+      }
 
+      this.lastSelectedText = selectedText;
       const { x, y } = this.determineIconPosition(selection);
       this.createIcon(x, y);
     }, 100); // Longer delay to ensure selection is stable
+  }
+
+  getTextFromSelection(selection) {
+    // 1. Prioritize form elements (Textareas/Inputs)
+    // This is CRITICAL for code editors like Ace/Monaco which use hidden textareas
+    // and virtualize the DOM (making window.getSelection() return truncated text).
+    const activeElement = document.activeElement;
+    if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
+      try {
+        const start = activeElement.selectionStart;
+        const end = activeElement.selectionEnd;
+        if (start !== undefined && end !== undefined && start !== end) {
+          const formText = activeElement.value.substring(start, end).trim();
+          if (formText) return formText;
+        }
+      } catch (e) {
+        // Ignore errors for input types that don't support selectionStart
+      }
+    }
+
+    // 2. Fallback to standard window selection
+    return selection.toString().trim();
   }
 
   determineIconPosition(selection) {
@@ -141,20 +169,20 @@ class JSONEasy {
     if (this.icon) {
       this.icon.remove();
     }
-    
+
     this.icon = document.createElement('div');
     this.icon.className = 'je-icon';
-    
+
     // Ensure icon is visible on screen
     const windowWidth = document.documentElement.clientWidth;
     const windowHeight = document.documentElement.clientHeight;
-    
+
     x = Math.min(Math.max(x, 15), windowWidth - 30);
     y = Math.min(Math.max(y, 15), windowHeight - 30);
-    
+
     this.icon.style.left = `${x}px`;
     this.icon.style.top = `${y}px`;
-    
+
     document.body.appendChild(this.icon);
   }
 
@@ -198,10 +226,10 @@ class JSONEasy {
 
     // Ensure minimum margins from viewport edges
     const margin = 5;
-    position.top = Math.min(Math.max(margin, position.top), 
-                          viewportHeight - popupHeight - margin);
-    position.left = Math.min(Math.max(margin, position.left), 
-                           viewportWidth - popupWidth - margin);
+    position.top = Math.min(Math.max(margin, position.top),
+      viewportHeight - popupHeight - margin);
+    position.left = Math.min(Math.max(margin, position.left),
+      viewportWidth - popupWidth - margin);
 
     return position;
   }
@@ -212,20 +240,20 @@ class JSONEasy {
     // Get the current dimensions
     const iconRect = this.icon.getBoundingClientRect();
     const popupRect = this.popup.getBoundingClientRect();
-    
+
     // Calculate optimal position
     const position = this.calculateOptimalPosition(iconRect, popupRect.width, popupRect.height);
-    
+
     // Update position classes while preserving error class if present
     const classes = ['je-popup', `position-${position.position}`];
     if (isError) {
-        classes.push('je-error');
+      classes.push('je-error');
     }
     if (this.popup.classList.contains('showing')) {
-        classes.push('showing');
+      classes.push('showing');
     }
     this.popup.className = classes.join(' ');
-    
+
     // Apply position
     this.popup.style.top = `${position.top}px`;
     this.popup.style.left = `${position.left}px`;
@@ -244,45 +272,45 @@ class JSONEasy {
     try {
       let jsonText = this.tryParseJSON(text);
       const formatted = this.formatJSON(jsonText);
-      
+
       // Create content container
       const content = document.createElement('div');
       content.className = 'je-content';
-      
+
       // Create pre element for the JSON content
       const pre = document.createElement('pre');
       pre.style.margin = '0';
       pre.textContent = formatted;
-      
+
       // Create header for the copy button
       const header = document.createElement('div');
       header.className = 'je-header';
-      
+
       // Create copy button with initial copy icon
       const copyButton = document.createElement('button');
       copyButton.className = 'je-copy-button';
-      
+
       copyButton.innerHTML = `
         <svg viewBox="0 0 24 24">
           <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
         </svg>`;
-      
+
       // Success checkmark icon SVG
       const checkIcon = `
         <svg viewBox="0 0 24 24">
           <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
         </svg>`;
-      
+
       copyButton.onclick = async (e) => {
         e.stopPropagation();
         e.preventDefault();
-        
+
         try {
           await navigator.clipboard.writeText(formatted);
-          
+
           copyButton.innerHTML = checkIcon;
           copyButton.classList.add('copied');
-          
+
           setTimeout(() => {
             if (copyButton && document.contains(copyButton)) {
               copyButton.innerHTML = `
@@ -301,7 +329,7 @@ class JSONEasy {
           });
         }
       };
-      
+
       // Add elements to popup
       header.appendChild(copyButton);
       this.popup.appendChild(header);
@@ -320,7 +348,7 @@ class JSONEasy {
 
     // Add to DOM to get dimensions
     document.body.appendChild(this.popup);
-    
+
     // Position the popup optimally, passing the error state
     this.updatePopupPosition(isError);
 
@@ -353,33 +381,44 @@ class JSONEasy {
   }
 
   tryParseJSON(text) {
+    // 1. Pre-clean: Replace non-breaking spaces and other common invisible artifacts
+    const cleanText = text
+      .replace(/\u00A0/g, ' ') // Non-breaking space
+      .replace(/\u200B/g, '')  // Zero-width space
+      .trim();
+
     const attempts = [
-      // Attempt 1: 2-pass parse using JSON5
+      // Attempt 1: Standard/JSON5 parse
       () => {
-        const parsed = JSON5.parse(text);
-        return typeof parsed === 'string' ? JSON5.parse(parsed) : parsed;
+        const parsed = JSON5.parse(cleanText);
+        // If it returns a string, it might be double-encoded or it was just a string
+        return typeof parsed === 'string' && (parsed.trim().startsWith('{') || parsed.trim().startsWith('['))
+          ? JSON5.parse(parsed)
+          : parsed;
       },
-      // Attempt 2: handling array fragments
+      // Attempt 2: Handle array fragments or comma-separated lists
+      () => JSON5.parse(`[${cleanText}]`),
+      // Attempt 3: Handle object fragments (captured middle of an object)
+      () => JSON5.parse(`{${cleanText}}`),
+      // Attempt 4: Last resort - try to strip common "code editor" artifacts like line numbers
       () => {
-        return JSON5.parse(`[${text}]`);
-      },
-      // Attempt 3: handling object fragments
-      () => {
-        return JSON5.parse(`{${text}}`);
-      },
+        const lines = cleanText.split('\n');
+        const stripped = lines.map(line => line.replace(/^[ ]*\d+[ ]+/, '')).join('\n');
+        if (stripped === cleanText) throw new Error("No line numbers found to strip");
+        return JSON5.parse(stripped);
+      }
     ];
 
     let lastError;
     for (let attempt of attempts) {
       try {
-        const result = attempt();
-        return result;
+        return attempt();
       } catch (e) {
         lastError = e;
         continue;
       }
     }
-  
+
     throw lastError;
   }
 
@@ -415,27 +454,33 @@ function showPopupOnCtxMenuClick(selectionText) {
   jsonEasy.removeElements();
 
   const selection = window.getSelection();
-  const selectedText = selection.toString().trim() || selectionText;
-  if (!selection.rangeCount) {
-    chrome.runtime.sendMessage({
-      type: 'log',
-      level: 'info',
-      text: 'No selection range found',
-      data: { text: selectedText },
-    });
+  const selectedText = jsonEasy.getTextFromSelection(selection) || selectionText;
+
+  if (!selectedText) {
     return;
   }
 
   try {
-    const { x, y } = jsonEasy.determineIconPosition(selection);
-    jsonEasy.createIcon(x, y);
-    jsonEasy.showPopup(selectedText);
+    const position = jsonEasy.determineIconPosition(selection);
+    if (position) {
+      jsonEasy.createIcon(position.x, position.y);
+      jsonEasy.lastSelectedText = selectedText;
+      jsonEasy.showPopup(selectedText);
+    }
   } catch (e) {
+    // If positioning fails (e.g. no range and not a form element), still try to show popup at default position
     chrome.runtime.sendMessage({
       type: 'log',
-      level: 'warn',
-      text: 'Error in context menu handler',
-      data: { text: selectedText, error: { message: e.message, stack: e.stack, name: e.name } },
+      level: 'info',
+      text: 'Positioning failed, using fallback',
+      data: { text: selectedText, error: e.message },
     });
+
+    // Fallback: Show at top-middle of viewport
+    const x = window.innerWidth / 2 - 15;
+    const y = 50;
+    jsonEasy.createIcon(x, y);
+    jsonEasy.lastSelectedText = selectedText;
+    jsonEasy.showPopup(selectedText);
   }
 }
