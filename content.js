@@ -37,9 +37,12 @@ class JSONEasy {
       // If clicking the icon, show popup
       if (e.target === this.icon) {
         e.stopPropagation();
-        // Use persisted text if available, fallback to current selection
-        const selection = this.lastSelectedText || window.getSelection().toString().trim();
-        this.showPopup(selection);
+        // Use persisted text if available, fallback to current selection.
+        // Custom editors (Monaco/CodeMirror/etc.) may not expose DOM selection,
+        // so allow a copy-event based fallback during this user gesture.
+        const selectionObj = window.getSelection();
+        const selectionText = (this.lastSelectedText || this.getTextFromSelectionWithCopyFallback(selectionObj)).trim();
+        this.showPopup(selectionText);
         return;
       }
 
@@ -136,6 +139,47 @@ class JSONEasy {
 
     // 2. Fallback to standard window selection
     return selection.toString().trim();
+  }
+
+  getTextFromSelectionWithCopyFallback(selection) {
+    const directText = this.getTextFromSelection(selection);
+    if (directText) return directText;
+    return this.getTextFromCopyEventFallback();
+  }
+
+  getTextFromCopyEventFallback() {
+    // Some rich text/code editors don't create a real DOM selection. In many of those,
+    // the only reliable way to obtain the selected text is to trigger a copy and
+    // read what the editor places into the clipboard event.
+    //
+    // This should ONLY be used during a user gesture (click/context menu), otherwise
+    // browsers will block `execCommand('copy')`.
+    let capturedText = '';
+    const onCopy = (e) => {
+      try {
+        const data = e.clipboardData?.getData('text/plain');
+        if (typeof data === 'string') {
+          capturedText = data;
+        }
+      } catch (err) {
+        // Ignore
+      }
+    };
+
+    // Bubble phase increases odds we see editor-populated clipboardData.
+    document.addEventListener('copy', onCopy, false);
+    try {
+      // Note: We should replace this with navigator.clipboard.writeText() but it requires the "clipboard-write" permission so let's stick with execCommand for now.
+      if (typeof document.execCommand === 'function') {
+        document.execCommand('copy');
+      }
+    } catch (err) {
+      // Ignore
+    } finally {
+      document.removeEventListener('copy', onCopy, false);
+    }
+
+    return (capturedText || '').trim();
   }
 
   determineIconPosition(selection) {
@@ -454,7 +498,7 @@ function showPopupOnCtxMenuClick(selectionText) {
   jsonEasy.removeElements();
 
   const selection = window.getSelection();
-  const selectedText = jsonEasy.getTextFromSelection(selection) || selectionText;
+  const selectedText = (jsonEasy.getTextFromSelectionWithCopyFallback(selection) || selectionText || '').trim();
 
   if (!selectedText) {
     return;
