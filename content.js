@@ -37,11 +37,21 @@ class JSONEasy {
       // If clicking the icon, show popup
       if (e.target === this.icon) {
         e.stopPropagation();
-        // Use persisted text if available, fallback to current selection.
+        // Use persisted text if available and meaningful, fallback to current selection.
         // Custom editors (Monaco/CodeMirror/etc.) may not expose DOM selection,
         // so allow a copy-event based fallback during this user gesture.
         const selectionObj = window.getSelection();
-        const selectionText = (this.lastSelectedText || this.getTextFromSelectionWithCopyFallback(selectionObj)).trim();
+        let selectionText = this.lastSelectedText;
+
+        // If stored text is too short (likely a CodeMirror/editor issue), try copy fallback
+        if (!selectionText || selectionText.length < 2) {
+          const copyText = this.getTextFromCopyEventFallback();
+          if (copyText.length > selectionText.length) {
+            selectionText = copyText;
+          }
+        }
+
+        selectionText = (selectionText || this.getTextFromSelectionWithCopyFallback(selectionObj)).trim();
         this.showPopup(selectionText);
         return;
       }
@@ -120,63 +130,123 @@ class JSONEasy {
   }
 
   getTextFromSelection(selection) {
-    // 1. Prioritize form elements (Textareas/Inputs)
-    // This is CRITICAL for code editors like Ace/Monaco which use hidden textareas
-    // and virtualize the DOM (making window.getSelection() return truncated text).
     const activeElement = document.activeElement;
+
+    // 1. Get DOM selection and filter out editor artifacts (like "-" or "\u200B" placeholders)
+    let domText = selection.toString().trim();
+    if (domText.length < 2 && (domText === '-' || domText === '\u200B')) {
+      domText = '';
+    }
+
+    // 2. Try form elements (Inputs/Textareas)
+    let formText = '';
     if (activeElement && (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
       try {
         const start = activeElement.selectionStart;
         const end = activeElement.selectionEnd;
         if (start !== undefined && end !== undefined && start !== end) {
-          const formText = activeElement.value.substring(start, end).trim();
-          if (formText) return formText;
+          const raw = activeElement.value.substring(start, end).trim();
+          if (raw.length > 1 || (raw !== '-' && raw !== '\u200B')) {
+            formText = raw;
+          }
         }
-      } catch (e) {
-        // Ignore errors for input types that don't support selectionStart
-      }
+      } catch (e) { }
     }
 
-    // 2. Fallback to standard window selection
-    return selection.toString().trim();
+    // GENERIC BUT NOT WORKING ?????
+    // // 3. Deep Scraper (Generic Editor Fallback)
+    // // If standard selection methods return nothing, search the nearby DOM for
+    // // containers that look like code editors and extract their line contents.
+    // if (!domText && !formText) {
+    //   const container = activeElement?.closest('[class*="editor"], [class*="scroll"], [class*="content"]') ||
+    //     document.querySelector('[class*="editor"]');
+
+    //   if (container) {
+    //     // Look for common line patterns (<pre> blocks or elements with "line"/"row" classes)
+    //     const lineElements = container.querySelectorAll('pre, [class*="line"], [class*="row"]');
+    //     if (lineElements.length > 0) {
+    //       const scraped = Array.from(lineElements)
+    //         .map(l => l.textContent)
+    //         .filter(t => t.trim().length > 0)
+    //         .join('\n').trim();
+
+    //       if (scraped.length > 0) return scraped;
+    //     }
+    //   }
+    // }
+
+    //////////////////////// WORKING //////////////////////////
+    // 3. CodeMirror Specific Scraper
+    if (!domText && !formText) {
+      const cmContainer = activeElement?.closest('.CodeMirror') ||
+        document.querySelector('.CodeMirror-scroll')?.closest('.CodeMirror') ||
+        document.querySelector('.CodeMirror');
+
+      if (cmContainer) {
+        const lines = cmContainer.querySelectorAll('.CodeMirror-line');
+        if (lines.length > 0) {
+          const scrapedText = Array.from(lines).map(l => l.textContent).join('\n').trim();
+          if (scrapedText.length > 5) {
+            return scrapedText;
+          }
+        }
+      }
+    }
+    ////////////////////////
+
+    if (formText.length > domText.length) return formText;
+    return domText || formText || '';
   }
 
   getTextFromSelectionWithCopyFallback(selection) {
     const directText = this.getTextFromSelection(selection);
-    if (directText) return directText;
-    return this.getTextFromCopyEventFallback();
+    // If we have any selection at all, prefer it. Only fallback if it's empty
+    // or suspiciously like an editor placeholder (1 char).
+    if (directText && directText.length > 1) return directText;
+
+    return this.getTextFromCopyEventFallback() || directText;
   }
 
   getTextFromCopyEventFallback() {
-    // Some rich text/code editors don't create a real DOM selection. In many of those,
-    // the only reliable way to obtain the selected text is to trigger a copy and
-    // read what the editor places into the clipboard event.
-    //
-    // This should ONLY be used during a user gesture (click/context menu), otherwise
-    // browsers will block `execCommand('copy')`.
     let capturedText = '';
-    const onCopy = (e) => {
-      try {
-        const data = e.clipboardData?.getData('text/plain');
-        if (typeof data === 'string') {
-          capturedText = data;
-        }
-      } catch (err) {
-        // Ignore
-      }
+    const activeElement = document.activeElement;
+
+    // 1. Monkey-patch navigator.clipboard.writeText
+    const originalWriteText = navigator.clipboard.writeText;
+    navigator.clipboard.writeText = async (text) => {
+      capturedText = text;
+      return originalWriteText.apply(navigator.clipboard, [text]);
     };
 
-    // Bubble phase increases odds we see editor-populated clipboardData.
-    document.addEventListener('copy', onCopy, false);
+    const onCopy = (e) => {
+      if (!e.clipboardData) return;
+      const originalSetData = e.clipboardData.setData.bind(e.clipboardData);
+      e.clipboardData.setData = (type, value) => {
+        if (type === 'text/plain') {
+          capturedText = value;
+        }
+        return originalSetData(type, value);
+      };
+    };
+
+    document.addEventListener('copy', onCopy, true);
+    if (activeElement && activeElement !== document) {
+      activeElement.addEventListener('copy', onCopy, true);
+    }
+
     try {
-      // Note: We should replace this with navigator.clipboard.writeText() but it requires the "clipboard-write" permission so let's stick with execCommand for now.
-      if (typeof document.execCommand === 'function') {
-        document.execCommand('copy');
-      }
+      document.execCommand('copy');
     } catch (err) {
-      // Ignore
+      console.error('[JSONEasy] execCommand error:', err);
     } finally {
-      document.removeEventListener('copy', onCopy, false);
+      // Revert monkey-patch after a delay
+      setTimeout(() => {
+        navigator.clipboard.writeText = originalWriteText;
+        document.removeEventListener('copy', onCopy, true);
+        if (activeElement && activeElement !== document) {
+          activeElement.removeEventListener('copy', onCopy, true);
+        }
+      }, 100);
     }
 
     return (capturedText || '').trim();
