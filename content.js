@@ -85,6 +85,13 @@ class JSONEasy {
         this.updatePopupPosition();
       }
     }, { passive: true });
+
+    // Handle Escape key to dismiss popup/icon
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.removeElements();
+      }
+    });
   }
 
   async loadSettings() {
