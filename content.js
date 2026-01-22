@@ -116,11 +116,22 @@ class JSONEasy {
     // Set new timeout
     this.selectionTimeout = setTimeout(() => {
       const selection = window.getSelection();
-      const selectedText = this.getTextFromSelection(selection);
+      let selectedText = this.getTextFromSelection(selection);
 
+      // If no DOM selection, check if we're in an editor (like Ace/CodeMirror)
+      // to decide if we should show the icon even if DOM selection is empty.
+      let isEditorMode = false;
       if (selectedText === '') {
-        this.lastSelectedText = '';
-        return;
+        const scraped = this.getScrapedText();
+        if (scraped) {
+          isEditorMode = true;
+          // We show the icon, but don't populate lastSelectedText yet.
+          // This allows the click handler to try getting a selection via copy fallback first.
+          selectedText = '';
+        } else {
+          this.lastSelectedText = '';
+          return;
+        }
       }
 
       this.lastSelectedText = selectedText;
@@ -153,65 +164,77 @@ class JSONEasy {
       } catch (e) { }
     }
 
-    // GENERIC BUT NOT WORKING ?????
-    // // 3. Deep Scraper (Generic Editor Fallback)
-    // // If standard selection methods return nothing, search the nearby DOM for
-    // // containers that look like code editors and extract their line contents.
-    // if (!domText && !formText) {
-    //   const container = activeElement?.closest('[class*="editor"], [class*="scroll"], [class*="content"]') ||
-    //     document.querySelector('[class*="editor"]');
-
-    //   if (container) {
-    //     // Look for common line patterns (<pre> blocks or elements with "line"/"row" classes)
-    //     const lineElements = container.querySelectorAll('pre, [class*="line"], [class*="row"]');
-    //     if (lineElements.length > 0) {
-    //       const scraped = Array.from(lineElements)
-    //         .map(l => l.textContent)
-    //         .filter(t => t.trim().length > 0)
-    //         .join('\n').trim();
-
-    //       if (scraped.length > 0) return scraped;
-    //     }
-    //   }
-    // }
-
-    //////////////////////// WORKING //////////////////////////
-    // 3. CodeMirror Specific Scraper
-    if (!domText && !formText) {
-      const cmContainer = activeElement?.closest('.CodeMirror') ||
-        document.querySelector('.CodeMirror-scroll')?.closest('.CodeMirror') ||
-        document.querySelector('.CodeMirror');
-
-      if (cmContainer) {
-        const lines = cmContainer.querySelectorAll('.CodeMirror-line');
-        if (lines.length > 0) {
-          const scrapedText = Array.from(lines).map(l => l.textContent).join('\n').trim();
-          if (scrapedText.length > 5) {
-            return scrapedText;
-          }
-        }
-      }
-    }
-    ////////////////////////
-
     if (formText.length > domText.length) return formText;
     return domText || formText || '';
   }
 
+  getScrapedText() {
+    const activeElement = document.activeElement;
+    // Deep Scraper (Generic Editor Fallback)
+    // search the nearby DOM for containers that look like code editors and extract their line contents.
+    const container = activeElement?.closest('.monaco-editor, .cm-editor, .CodeMirror, .ace_editor, [class*="editor"], [class*="scroll"]') ||
+      document.querySelector('.monaco-editor, .cm-editor, .CodeMirror, .ace_editor');
+
+    if (container) {
+      // Try specific editor line selectors first (Monaco, CM6, CM5, Ace, generic pre)
+      const lineSelectors = ['.view-line', '.cm-line', '.CodeMirror-line', '.ace_line', 'pre'];
+      let lineElements = [];
+
+      for (const selector of lineSelectors) {
+        const found = container.querySelectorAll(selector);
+        if (found.length > 0) {
+          lineElements = Array.from(found);
+          break;
+        }
+      }
+
+      // If no specific lines found, fallback to more generic but filtered line elements
+      if (lineElements.length === 0) {
+        lineElements = Array.from(container.querySelectorAll('[class*="line"], [class*="row"]'))
+          .filter(el => {
+            const className = (el.className || '').toString();
+            // Filter out common gutter/line-number classes
+            return !/gutter|number|margin|lineno|index/i.test(className);
+          });
+      }
+
+      if (lineElements.length > 0) {
+        const scraped = lineElements
+          .map(l => l.textContent)
+          .filter(t => t.trim().length > 0)
+          .join('\n').trim();
+
+        if (scraped.length > 5) return scraped;
+      }
+    }
+
+    // ContentEditable Fallback
+    if (activeElement?.getAttribute('contenteditable') === 'true' || activeElement?.isContentEditable) {
+      const ceText = activeElement.innerText.trim();
+      if (ceText.length > 5) return ceText;
+    }
+
+    return '';
+  }
+
   getTextFromSelectionWithCopyFallback(selection) {
+    // 1. Direct DOM/Form selection
     const directText = this.getTextFromSelection(selection);
-    // If we have any selection at all, prefer it. Only fallback if it's empty
-    // or suspiciously like an editor placeholder (1 char).
     if (directText && directText.length > 1) return directText;
 
-    return this.getTextFromCopyEventFallback() || directText;
+    // 2. Try Copy Event Fallback (for editors like Ace/Monaco)
+    const copyText = this.getTextFromCopyEventFallback();
+    if (copyText && copyText.length > 1) return copyText;
+
+    // 3. Last resort: Scrape the entire editor content
+    return this.getScrapedText() || directText;
   }
 
   getTextFromCopyEventFallback() {
     let capturedText = '';
     const activeElement = document.activeElement;
 
-    // 1. Monkey-patch navigator.clipboard.writeText
+    // 1. Monkey-patch navigator.clipboard.writeText (Modern editors)
     const originalWriteText = navigator.clipboard.writeText;
     navigator.clipboard.writeText = async (text) => {
       capturedText = text;
@@ -219,31 +242,49 @@ class JSONEasy {
     };
 
     const onCopy = (e) => {
-      if (!e.clipboardData) return;
-      const originalSetData = e.clipboardData.setData.bind(e.clipboardData);
-      e.clipboardData.setData = (type, value) => {
-        if (type === 'text/plain') {
-          capturedText = value;
+      // Try to GET data already set by the editor (Bubble phase is good for this)
+      try {
+        const data = e.clipboardData?.getData('text/plain');
+        if (data && data.length > 0) {
+          capturedText = data;
         }
-        return originalSetData(type, value);
-      };
+      } catch (err) { }
+
+      // Also intercept setData calls
+      if (e.clipboardData && !capturedText) {
+        const originalSetData = e.clipboardData.setData.bind(e.clipboardData);
+        e.clipboardData.setData = (type, value) => {
+          if (type === 'text/plain') {
+            capturedText = value;
+          }
+          return originalSetData(type, value);
+        };
+      }
     };
 
+    // Bubble phase increases odds we see editor-populated clipboardData
+    document.addEventListener('copy', onCopy, false);
     document.addEventListener('copy', onCopy, true);
+
     if (activeElement && activeElement !== document) {
+      activeElement.addEventListener('copy', onCopy, false);
       activeElement.addEventListener('copy', onCopy, true);
     }
 
     try {
-      document.execCommand('copy');
+      if (typeof document.execCommand === 'function') {
+        document.execCommand('copy');
+      }
     } catch (err) {
       console.error('[JSONEasy] execCommand error:', err);
     } finally {
-      // Revert monkey-patch after a delay
+      // Revert monkey-patch and listeners after a delay
       setTimeout(() => {
         navigator.clipboard.writeText = originalWriteText;
+        document.removeEventListener('copy', onCopy, false);
         document.removeEventListener('copy', onCopy, true);
         if (activeElement && activeElement !== document) {
+          activeElement.removeEventListener('copy', onCopy, false);
           activeElement.removeEventListener('copy', onCopy, true);
         }
       }, 100);
@@ -269,11 +310,18 @@ class JSONEasy {
       y = elementRect.bottom;
     } else {
       // Use normal range positioning for other elements
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      // Use viewport coordinates directly since getBoundingClientRect() is viewport-relative
-      x = rect.left;
-      y = rect.bottom;
+      if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        // Use viewport coordinates directly since getBoundingClientRect() is viewport-relative
+        x = rect.left;
+        y = rect.bottom;
+      } else if (activeElement) {
+        // Fallback to active element bottom if no selection range
+        const rect = activeElement.getBoundingClientRect();
+        x = rect.left;
+        y = rect.bottom;
+      }
     }
 
     return { x, y };
