@@ -120,30 +120,33 @@ class JSONEasy {
       clearTimeout(this.selectionTimeout);
     }
 
+    // Capture coordinates from the event to use as fallback
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+
     // Set new timeout
     this.selectionTimeout = setTimeout(() => {
       const selection = window.getSelection();
       let selectedText = this.getTextFromSelection(selection);
 
-      // If no DOM selection, check if we're in an editor (like Ace/CodeMirror)
-      // to decide if we should show the icon even if DOM selection is empty.
-      let isEditorMode = false;
+      // If no DOM selection, check if the active element is actually a code editor.
       if (selectedText === '') {
-        const scraped = this.getScrapedText();
-        if (scraped) {
-          isEditorMode = true;
-          // We show the icon, but don't populate lastSelectedText yet.
-          // This allows the click handler to try getting a selection via copy fallback first.
-          selectedText = '';
-        } else {
+        const activeElement = document.activeElement;
+        const isInsideEditor = activeElement?.closest('.monaco-editor, .cm-editor, .CodeMirror, .ace_editor, [class*="editor"]');
+
+        // Only show if we are in an editor AND the selection is not collapsed.
+        // This handles editors that don't expose text in the DOM but do have a selection range.
+        if (!isInsideEditor || selection.isCollapsed) {
           this.lastSelectedText = '';
           return;
         }
       }
 
       this.lastSelectedText = selectedText;
-      const { x, y } = this.determineIconPosition(selection);
-      this.createIcon(x, y);
+      const position = this.determineIconPosition(selection, mouseX, mouseY);
+      if (position) {
+        this.createIcon(position.x, position.y);
+      }
     }, 100); // Longer delay to ensure selection is stable
   }
 
@@ -178,9 +181,8 @@ class JSONEasy {
   getScrapedText() {
     const activeElement = document.activeElement;
     // Deep Scraper (Generic Editor Fallback)
-    // search the nearby DOM for containers that look like code editors and extract their line contents.
-    const container = activeElement?.closest('.monaco-editor, .cm-editor, .CodeMirror, .ace_editor, [class*="editor"], [class*="scroll"]') ||
-      document.querySelector('.monaco-editor, .cm-editor, .CodeMirror, .ace_editor');
+    // Only search the context of the active element to avoid accidental triggers from unrelated editors.
+    const container = activeElement?.closest('.monaco-editor, .cm-editor, .CodeMirror, .ace_editor, [class*="editor"]');
 
     if (container) {
       // Try specific editor line selectors first (Monaco, CM6, CM5, Ace, generic pre)
@@ -225,13 +227,13 @@ class JSONEasy {
   }
 
   getTextFromSelectionWithCopyFallback(selection) {
-    // 1. Direct DOM/Form selection
+    // 1. Direct DOM/Form selection (allow short selections for numbers/booleans)
     const directText = this.getTextFromSelection(selection);
-    if (directText && directText.length > 1) return directText;
+    if (directText) return directText;
 
     // 2. Try Copy Event Fallback (for editors like Ace/Monaco)
     const copyText = this.getTextFromCopyEventFallback();
-    if (copyText && copyText.length > 1) return copyText;
+    if (copyText) return copyText;
 
     // 3. Last resort: Scrape the entire editor content
     return this.getScrapedText() || directText;
@@ -300,7 +302,7 @@ class JSONEasy {
     return (capturedText || '').trim();
   }
 
-  determineIconPosition(selection) {
+  determineIconPosition(selection, fallbackX, fallbackY) {
     // Check if selection is within a form element
     const activeElement = document.activeElement;
     const isFormElement = activeElement.tagName === 'INPUT' ||
@@ -320,14 +322,25 @@ class JSONEasy {
       if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
-        // Use viewport coordinates directly since getBoundingClientRect() is viewport-relative
-        x = rect.left;
-        y = rect.bottom;
-      } else if (activeElement) {
-        // Fallback to active element bottom if no selection range
+        // Use rect if it's not empty
+        if (rect.width > 0 || rect.height > 0) {
+          x = rect.left;
+          y = rect.bottom;
+        } else {
+          // Fallback to mouse coordinates or active element
+          x = fallbackX || rect.left;
+          y = (fallbackY || rect.bottom) + 10; // offset slightly from cursor
+        }
+      } else if (fallbackX !== undefined && fallbackY !== undefined) {
+        x = fallbackX;
+        y = fallbackY + 10;
+      } else if (activeElement && activeElement !== document.body) {
+        // Last resort: active element bottom
         const rect = activeElement.getBoundingClientRect();
         x = rect.left;
         y = rect.bottom;
+      } else {
+        return null;
       }
     }
 
