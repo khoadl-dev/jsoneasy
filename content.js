@@ -525,7 +525,7 @@ class JSONEasy {
         data: { text: text, error: { message: e.message, stack: e.stack, name: e.name } },
       });
       isError = true;
-      this.popup.textContent = 'Invalid JSON format';
+      this.popup.textContent = chrome.i18n.getMessage('errorInvalidJSON');
     }
 
     // Add to DOM to get dimensions

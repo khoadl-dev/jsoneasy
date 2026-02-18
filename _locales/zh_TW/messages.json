@@ -1,0 +1,30 @@
+{
+  "extensionName": {
+    "message": "JSON Easy: 直接在網頁中查看任何 JSON，包括格式錯誤的",
+    "description": "The name of the extension."
+  },
+  "extensionShortName": {
+    "message": "JSON 查看器",
+    "description": "Short name for the extension's icon."
+  },
+  "extensionDescription": {
+    "message": "在任何網頁上直接查看、格式化和修復凌亂的 JSON 或 JSON5。支援損壞或不完整的程式碼片段。",
+    "description": "A description of the extension."
+  },
+  "settingHideButton": {
+    "message": "在網頁上隱藏懸浮按鈕",
+    "description": "Label for the toggle to hide the floating icon."
+  },
+  "settingHideButtonHelp": {
+    "message": "您需要使用右鍵選單中的「查看格式化 JSON」選項",
+    "description": "Tooltip for the hide button setting."
+  },
+  "contextMenuTitle": {
+    "message": "查看格式化 JSON",
+    "description": "Title for the right-click context menu item."
+  },
+  "errorInvalidJSON": {
+    "message": "JSON 格式無效",
+    "description": "Error message when JSON parsing fails."
+  }
+}

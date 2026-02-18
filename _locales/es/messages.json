@@ -1,0 +1,30 @@
+{
+  "extensionName": {
+    "message": "JSON Easy: Ver cualquier JSON, incluso mal formado",
+    "description": "The name of the extension."
+  },
+  "extensionShortName": {
+    "message": "Visor JSON",
+    "description": "Short name for the extension's icon."
+  },
+  "extensionDescription": {
+    "message": "Visualiza, formatea y repara JSON o JSON5 directamente en cualquier página web. Soporta fragmentos incompletos.",
+    "description": "A description of the extension."
+  },
+  "settingHideButton": {
+    "message": "Ocultar botón emergente en las páginas",
+    "description": "Label for the toggle to hide the floating icon."
+  },
+  "settingHideButtonHelp": {
+    "message": "Deberá utilizar la opción del menú contextual 'Ver JSON formateado'",
+    "description": "Tooltip for the hide button setting."
+  },
+  "contextMenuTitle": {
+    "message": "Ver JSON formateado",
+    "description": "Title for the right-click context menu item."
+  },
+  "errorInvalidJSON": {
+    "message": "Formato JSON no válido",
+    "description": "Error message when JSON parsing fails."
+  }
+}

@@ -1,7 +1,7 @@
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "SHOW_POPUP",
-    title: "View formatted JSON",
+    title: chrome.i18n.getMessage("contextMenuTitle"),
     contexts: ["selection"],
   });
 });
