@@ -4,7 +4,7 @@
     "description": "The name of the extension."
   },
   "extensionShortName": {
-    "message": "Visualizador JSON",
+    "message": "JSON Easy",
     "description": "Short name for the extension's icon."
   },
   "extensionDescription": {
