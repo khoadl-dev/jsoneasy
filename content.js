@@ -490,7 +490,7 @@ class JSONEasy {
       // Create pre element for the JSON content
       const pre = document.createElement('pre');
       pre.style.margin = '0';
-      pre.textContent = formatted;
+      pre.innerHTML = highlightJSON(formatted);
       if (this.wrapLines) {
         pre.classList.add('je-wrap');
       }

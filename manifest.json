@@ -26,7 +26,7 @@
     {
       "matches": ["<all_urls>"],
       "css": ["styles.css"],
-      "js": ["libs/json5.min.js", "content.js"],
+      "js": ["libs/json5.min.js", "highlighter.js", "content.js"],
       "all_frames": true,
       "run_at": "document_end"
     }

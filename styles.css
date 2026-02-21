@@ -190,3 +190,26 @@
   height: 18px;
   fill: currentColor;
 }
+/* Syntax Highlighting */
+.je-key {
+  color: #880000;
+  font-weight: 600;
+}
+
+.je-string {
+  color: #007700;
+}
+
+.je-number {
+  color: #0000ff;
+}
+
+.je-boolean {
+  color: #ff8c00;
+  font-weight: 600;
+}
+
+.je-null {
+  color: #808080;
+  font-style: italic;
+}
