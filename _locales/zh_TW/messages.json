@@ -50,5 +50,17 @@
   "settingWrapLines": {
     "message": "自動換行",
     "description": "Label for the line wrapping toggle."
+  },
+  "settingKeyboardShortcut": {
+    "message": "鍵盤快捷鍵",
+    "description": "Label for keyboard shortcut setting."
+  },
+  "settingKeyboardShortcutLink": {
+    "message": "配置",
+    "description": "Link text to open keyboard shortcut settings."
+  },
+  "commandParseJson": {
+    "message": "解析選中的 JSON",
+    "description": "Command description for keyboard shortcut."
   }
 }

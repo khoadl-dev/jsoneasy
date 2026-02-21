@@ -50,5 +50,17 @@
   "settingWrapLines": {
     "message": "Quebra de linha",
     "description": "Label for the line wrapping toggle."
+  },
+  "settingKeyboardShortcut": {
+    "message": "Atalho de teclado",
+    "description": "Label for keyboard shortcut setting."
+  },
+  "settingKeyboardShortcutLink": {
+    "message": "Configurar",
+    "description": "Link text to open keyboard shortcut settings."
+  },
+  "commandParseJson": {
+    "message": "Analisar JSON selecionado",
+    "description": "Command description for keyboard shortcut."
   }
 }

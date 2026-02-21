@@ -13,6 +13,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const labelIndent4 = document.getElementById('labelIndent4');
   const helpIcon = document.getElementById('helpIconHideButton');
 
+  const labelKeyboardShortcut = document.getElementById('labelKeyboardShortcut');
+  const linkKeyboardShortcut = document.getElementById('linkKeyboardShortcut');
+
   // Initialize localized text
   labelHide.textContent = chrome.i18n.getMessage('settingHideButton');
   labelSort.textContent = chrome.i18n.getMessage('settingSortKeys');
@@ -22,6 +25,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   labelIndent2.textContent = chrome.i18n.getMessage('settingIndent2');
   labelIndent4.textContent = chrome.i18n.getMessage('settingIndent4');
   helpIcon.title = chrome.i18n.getMessage('settingHideButtonHelp');
+
+  if (labelKeyboardShortcut) labelKeyboardShortcut.textContent = chrome.i18n.getMessage('settingKeyboardShortcut');
+  if (linkKeyboardShortcut) linkKeyboardShortcut.textContent = chrome.i18n.getMessage('settingKeyboardShortcutLink');
 
   // Load saved settings
   const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize', 'wrapLines']);
@@ -54,4 +60,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       chrome.storage.local.set({ indentSize: parseInt(radio.value, 10) });
     });
   });
+
+  if (linkKeyboardShortcut) {
+    linkKeyboardShortcut.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    });
+  }
 });
