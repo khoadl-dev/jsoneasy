@@ -46,5 +46,9 @@
   "settingSortKeys": {
     "message": "Sort keys alphabetically",
     "description": "Label for the key sorting toggle."
+  },
+  "settingWrapLines": {
+    "message": "Wrap long lines",
+    "description": "Label for the line wrapping toggle."
   }
 }

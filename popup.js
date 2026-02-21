@@ -1,10 +1,12 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const hideButtonCheckbox = document.getElementById('hidePopupButton');
   const sortKeysCheckbox = document.getElementById('sortKeys');
+  const wrapLinesCheckbox = document.getElementById('wrapLines');
   const indentRadios = document.getElementsByName('indent');
 
   const labelHide = document.getElementById('labelHideButton');
   const labelSort = document.getElementById('labelSortKeys');
+  const labelWrap = document.getElementById('labelWrapLines');
   const labelIndent = document.getElementById('labelIndent');
   const labelIndentCompact = document.getElementById('labelIndentCompact');
   const labelIndent2 = document.getElementById('labelIndent2');
@@ -14,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize localized text
   labelHide.textContent = chrome.i18n.getMessage('settingHideButton');
   labelSort.textContent = chrome.i18n.getMessage('settingSortKeys');
+  labelWrap.textContent = chrome.i18n.getMessage('settingWrapLines');
   labelIndent.textContent = chrome.i18n.getMessage('settingIndent');
   labelIndentCompact.textContent = chrome.i18n.getMessage('settingIndentCompact');
   labelIndent2.textContent = chrome.i18n.getMessage('settingIndent2');
@@ -21,10 +24,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   helpIcon.title = chrome.i18n.getMessage('settingHideButtonHelp');
 
   // Load saved settings
-  const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize']);
+  const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize', 'wrapLines']);
 
   hideButtonCheckbox.checked = result.hidePopupButton || false;
   sortKeysCheckbox.checked = result.sortKeys || false;
+  wrapLinesCheckbox.checked = result.wrapLines || false;
 
   const indentSize = result.indentSize !== undefined ? result.indentSize : 2;
   const targetRadio = document.querySelector(`input[name="indent"][value="${indentSize}"]`);
@@ -39,6 +43,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   sortKeysCheckbox.addEventListener('change', () => {
     chrome.storage.local.set({ sortKeys: sortKeysCheckbox.checked });
+  });
+
+  wrapLinesCheckbox.addEventListener('change', () => {
+    chrome.storage.local.set({ wrapLines: wrapLinesCheckbox.checked });
   });
 
   indentRadios.forEach(radio => {

@@ -46,5 +46,9 @@
   "settingSortKeys": {
     "message": "按字母顺序排列键",
     "description": "Label for the key sorting toggle."
+  },
+  "settingWrapLines": {
+    "message": "自动换行",
+    "description": "Label for the line wrapping toggle."
   }
 }

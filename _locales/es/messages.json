@@ -46,5 +46,9 @@
   "settingSortKeys": {
     "message": "Ordenar claves alfabéticamente",
     "description": "Label for the key sorting toggle."
+  },
+  "settingWrapLines": {
+    "message": "Ajuste de línea",
+    "description": "Label for the line wrapping toggle."
   }
 }

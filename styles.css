@@ -34,8 +34,6 @@
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 13px;
   line-height: 1.4;
-  white-space: pre-wrap;
-  word-wrap: break-word;
   color: #333;
   background-color: #f8f9fa;
   transition: transform 0.05s ease-out;
@@ -44,6 +42,8 @@
   -webkit-user-select: text;
   user-select: text;
 }
+
+
 
 /* Add responsive sizing for smaller screens */
 @media screen and (max-width: 600px) {
@@ -152,6 +152,16 @@
 
 .je-content {
   margin: -16px 0 0 0;
+}
+
+.je-content pre {
+  white-space: pre;
+}
+
+.je-content pre.je-wrap {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
 }
 
 /* Update icon size */

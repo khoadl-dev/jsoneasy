@@ -11,6 +11,7 @@ class JSONEasy {
     this.hidePopupButton = false;
     this.sortKeys = false;
     this.indentSize = 2;
+    this.wrapLines = false;
     this.lastSelectedText = ''; // Store selection when icon is created
     this.loadSettings();
     this.setupEventListeners();
@@ -97,10 +98,11 @@ class JSONEasy {
   }
 
   async loadSettings() {
-    const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize']);
+    const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize', 'wrapLines']);
     this.hidePopupButton = result.hidePopupButton || false;
     this.sortKeys = result.sortKeys || false;
     this.indentSize = result.indentSize !== undefined ? result.indentSize : 2;
+    this.wrapLines = result.wrapLines || false;
 
     // Listen for settings changes
     chrome.storage.onChanged.addListener((changes, area) => {
@@ -116,6 +118,20 @@ class JSONEasy {
         }
         if (changes.indentSize) {
           this.indentSize = changes.indentSize.newValue;
+        }
+        if (changes.wrapLines) {
+          this.wrapLines = changes.wrapLines.newValue;
+          // Dynamically update existing popup if open
+          if (this.popup) {
+            const pre = this.popup.querySelector('pre');
+            if (pre) {
+              if (this.wrapLines) {
+                pre.classList.add('je-wrap');
+              } else {
+                pre.classList.remove('je-wrap');
+              }
+            }
+          }
         }
       }
     });
@@ -475,6 +491,9 @@ class JSONEasy {
       const pre = document.createElement('pre');
       pre.style.margin = '0';
       pre.textContent = formatted;
+      if (this.wrapLines) {
+        pre.classList.add('je-wrap');
+      }
 
       // Create header for the copy button
       const header = document.createElement('div');
