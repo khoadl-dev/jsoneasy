@@ -51,6 +51,10 @@
     "message": "Quebra de linha",
     "description": "Label for the line wrapping toggle."
   },
+  "settingHighlighting": {
+    "message": "Destaque de sintaxe",
+    "description": "Label for the syntax highlighting toggle."
+  },
   "settingKeyboardShortcut": {
     "message": "Atalho de teclado",
     "description": "Label for keyboard shortcut setting."

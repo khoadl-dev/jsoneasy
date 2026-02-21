@@ -12,6 +12,7 @@ class JSONEasy {
     this.sortKeys = false;
     this.indentSize = 2;
     this.wrapLines = false;
+    this.syntaxHighlighting = true;
     this.lastSelectedText = ''; // Store selection when icon is created
     this.loadSettings();
     this.setupEventListeners();
@@ -98,11 +99,12 @@ class JSONEasy {
   }
 
   async loadSettings() {
-    const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize', 'wrapLines']);
+    const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize', 'wrapLines', 'syntaxHighlighting']);
     this.hidePopupButton = result.hidePopupButton || false;
     this.sortKeys = result.sortKeys || false;
     this.indentSize = result.indentSize !== undefined ? result.indentSize : 2;
     this.wrapLines = result.wrapLines || false;
+    this.syntaxHighlighting = result.syntaxHighlighting !== false; // Default true
 
     // Listen for settings changes
     chrome.storage.onChanged.addListener((changes, area) => {
@@ -129,6 +131,21 @@ class JSONEasy {
                 pre.classList.add('je-wrap');
               } else {
                 pre.classList.remove('je-wrap');
+              }
+            }
+          }
+        }
+        if (changes.syntaxHighlighting) {
+          this.syntaxHighlighting = changes.syntaxHighlighting.newValue;
+          // Dynamically update existing popup if open
+          if (this.popup) {
+            const pre = this.popup.querySelector('pre');
+            if (pre) {
+              const formatted = pre.getAttribute('data-raw') || pre.textContent;
+              if (this.syntaxHighlighting) {
+                pre.innerHTML = highlightJSON(formatted);
+              } else {
+                pre.textContent = formatted;
               }
             }
           }
@@ -490,7 +507,12 @@ class JSONEasy {
       // Create pre element for the JSON content
       const pre = document.createElement('pre');
       pre.style.margin = '0';
-      pre.innerHTML = highlightJSON(formatted);
+      pre.setAttribute('data-raw', formatted); // Store raw for live toggling
+      if (this.syntaxHighlighting) {
+        pre.innerHTML = highlightJSON(formatted);
+      } else {
+        pre.textContent = formatted;
+      }
       if (this.wrapLines) {
         pre.classList.add('je-wrap');
       }

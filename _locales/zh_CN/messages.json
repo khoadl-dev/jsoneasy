@@ -51,6 +51,10 @@
     "message": "自动换行",
     "description": "Label for the line wrapping toggle."
   },
+  "settingHighlighting": {
+    "message": "语法高亮",
+    "description": "Label for the syntax highlighting toggle."
+  },
   "settingKeyboardShortcut": {
     "message": "键盘快捷键",
     "description": "Label for keyboard shortcut setting."

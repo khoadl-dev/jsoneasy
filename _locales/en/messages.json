@@ -51,6 +51,10 @@
     "message": "Wrap long lines",
     "description": "Label for the line wrapping toggle."
   },
+  "settingHighlighting": {
+    "message": "Syntax highlighting",
+    "description": "Label for the syntax highlighting toggle."
+  },
   "settingKeyboardShortcut": {
     "message": "Keyboard shortcut",
     "description": "Label for keyboard shortcut setting."

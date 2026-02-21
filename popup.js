@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const labelHide = document.getElementById('labelHideButton');
   const labelSort = document.getElementById('labelSortKeys');
   const labelWrap = document.getElementById('labelWrapLines');
+  const labelHighlight = document.getElementById('labelHighlighting');
   const labelIndent = document.getElementById('labelIndent');
   const labelIndentCompact = document.getElementById('labelIndentCompact');
   const labelIndent2 = document.getElementById('labelIndent2');
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   labelHide.textContent = chrome.i18n.getMessage('settingHideButton');
   labelSort.textContent = chrome.i18n.getMessage('settingSortKeys');
   labelWrap.textContent = chrome.i18n.getMessage('settingWrapLines');
+  labelHighlight.textContent = chrome.i18n.getMessage('settingHighlighting');
   labelIndent.textContent = chrome.i18n.getMessage('settingIndent');
   labelIndentCompact.textContent = chrome.i18n.getMessage('settingIndentCompact');
   labelIndent2.textContent = chrome.i18n.getMessage('settingIndent2');
@@ -29,12 +31,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (labelKeyboardShortcut) labelKeyboardShortcut.textContent = chrome.i18n.getMessage('settingKeyboardShortcut');
   if (linkKeyboardShortcut) linkKeyboardShortcut.textContent = chrome.i18n.getMessage('settingKeyboardShortcutLink');
 
+  const syntaxHighlightingCheckbox = document.getElementById('syntaxHighlighting');
+
   // Load saved settings
-  const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize', 'wrapLines']);
+  const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize', 'wrapLines', 'syntaxHighlighting']);
 
   hideButtonCheckbox.checked = result.hidePopupButton || false;
   sortKeysCheckbox.checked = result.sortKeys || false;
   wrapLinesCheckbox.checked = result.wrapLines || false;
+  syntaxHighlightingCheckbox.checked = result.syntaxHighlighting !== false; // Default true
 
   const indentSize = result.indentSize !== undefined ? result.indentSize : 2;
   const targetRadio = document.querySelector(`input[name="indent"][value="${indentSize}"]`);
@@ -53,6 +58,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   wrapLinesCheckbox.addEventListener('change', () => {
     chrome.storage.local.set({ wrapLines: wrapLinesCheckbox.checked });
+  });
+
+  syntaxHighlightingCheckbox.addEventListener('change', () => {
+    chrome.storage.local.set({ syntaxHighlighting: syntaxHighlightingCheckbox.checked });
   });
 
   indentRadios.forEach(radio => {

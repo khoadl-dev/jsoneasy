@@ -15,6 +15,7 @@ JSONEasy now automatically color-codes your JSON, making it instantly readable.
 -   **Instant Scanability**: Distinguish keys from values at a glance.
 -   **Type Recognition**: Numbers, strings, booleans, and null values have distinct, intuitive colors.
 -   **Clean Copy-Paste**: The colors are for your eyes only. When you hit "Copy," you get 100% clean, valid JSON for your terminal or IDE.
+-   **Full Control**: Prefer the raw look? You can toggle syntax highlighting on or off instantly from the settings menu.
 
 ### 🛠 Developer Tools
 -   **Key Sorting**: Alphabetically organize object keys to find what you need faster.

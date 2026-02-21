@@ -4,7 +4,7 @@ This document outlines the technical design, implementation, and testing of the 
 
 ## Overview
 
-The syntax highlighting system is designed to be **lightweight**, **zero-dependency**, and **non-destructive**. It aims to improve the visual scanability of JSON while ensuring the underlying data remains clean for copy-paste operations.
+The syntax highlighting system is designed to be **lightweight**, **zero-dependency**, and **non-destructive**. It is enabled by default but can be manually disabled in the extension settings.
 
 ## Architecture
 
@@ -34,6 +34,10 @@ The highlighter is **visual-only**.
 -   When `JSONEasy.showPopup()` is called, we first generate a `formatted` string using `JSON.stringify`.
 -   The highlighter transforms this string into HTML with `<span>` tags.
 -   **CRITICAL**: The "Copy" button uses the original `formatted` string variable, NOT the HTML-polluted DOM. This ensures users always copy valid JSON.
+
+### 4. Logic Toggle & Live Updates
+- **Settings**: Users can toggle "Syntax highlighting" in the extension popup.
+- **Implementation**: In `content.js`, we use an `setAttribute('data-raw', formatted)` on the `<pre>` element to preserve the original formatted string. This allows for instant re-rendering without re-parsing if the user toggles highlighting while a popup is currently visible.
 
 ## CSS Design System
 
