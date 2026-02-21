@@ -104,6 +104,117 @@
       font-size: 18px;
       font-weight: 600;
     }
+
+    .setting-group {
+      margin-bottom: 20px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .setting-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+
+    /* Segmented Control Styles */
+    .segmented-control {
+      display: flex;
+      background: #f0f0f0;
+      padding: 2px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .segmented-control input {
+      display: none;
+    }
+
+    .segmented-control label {
+      flex: 1;
+      text-align: center;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .segmented-control input:checked+label {
+      background: white;
+      color: #FFA500;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-weight: 600;
+    }
+
+    .help-icon {
+      color: #999;
+      cursor: help;
+      font-size: 12px;
+      width: 14px;
+      height: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid currentColor;
+    }
+
+    .help-icon:hover {
+      color: #666;
+    }
+
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: #FFA500;
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(20px);
+    }
   </style>
 </head>
 
@@ -112,6 +223,33 @@
     <img src="icons/icon48.png" alt="JSONEasy Icon">
     <h1>JSONEasy</h1>
   </div>
+
+  <div class="setting-group">
+    <div class="setting-label">
+      <span id="labelIndent"></span>
+    </div>
+    <div class="segmented-control">
+      <input type="radio" name="indent" id="indent0" value="0">
+      <label for="indent0" id="labelIndentCompact"></label>
+
+      <input type="radio" name="indent" id="indent2" value="2">
+      <label for="indent2">2</label>
+
+      <input type="radio" name="indent" id="indent4" value="4">
+      <label for="indent4">4</label>
+    </div>
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-label">
+      <span id="labelSortKeys"></span>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="sortKeys">
+      <span class="slider"></span>
+    </label>
+  </div>
+
   <div class="setting-row">
     <div class="setting-label">
       <span id="labelHideButton"></span>

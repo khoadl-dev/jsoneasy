@@ -9,6 +9,8 @@ class JSONEasy {
     this.popup = null;
     this.selectionTimeout = null;
     this.hidePopupButton = false;
+    this.sortKeys = false;
+    this.indentSize = 2;
     this.lastSelectedText = ''; // Store selection when icon is created
     this.loadSettings();
     this.setupEventListeners();
@@ -95,15 +97,25 @@ class JSONEasy {
   }
 
   async loadSettings() {
-    const result = await chrome.storage.local.get('hidePopupButton');
+    const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize']);
     this.hidePopupButton = result.hidePopupButton || false;
+    this.sortKeys = result.sortKeys || false;
+    this.indentSize = result.indentSize !== undefined ? result.indentSize : 2;
 
     // Listen for settings changes
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.hidePopupButton) {
-        this.hidePopupButton = changes.hidePopupButton.newValue;
-        if (this.hidePopupButton) {
-          this.removeElements();
+      if (area === 'local') {
+        if (changes.hidePopupButton) {
+          this.hidePopupButton = changes.hidePopupButton.newValue;
+          if (this.hidePopupButton) {
+            this.removeElements();
+          }
+        }
+        if (changes.sortKeys) {
+          this.sortKeys = changes.sortKeys.newValue;
+        }
+        if (changes.indentSize) {
+          this.indentSize = changes.indentSize.newValue;
         }
       }
     });
@@ -559,7 +571,31 @@ class JSONEasy {
         });
       }
     }
-    return JSON.stringify(obj, null, 2);
+
+    let processedObj = obj;
+    if (this.sortKeys) {
+      processedObj = this.sortObject(obj);
+    }
+
+    const space = this.indentSize === 0 ? null : this.indentSize;
+    return JSON.stringify(processedObj, null, space);
+  }
+
+  sortObject(obj) {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.sortObject(item));
+    }
+
+    return Object.keys(obj)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+      .reduce((acc, key) => {
+        acc[key] = this.sortObject(obj[key]);
+        return acc;
+      }, {});
   }
 
   tryParseJSON(text) {

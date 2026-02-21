@@ -26,5 +26,17 @@
   "errorInvalidJSON": {
     "message": "Invalid JSON format",
     "description": "Error message when JSON parsing fails."
+  },
+  "settingIndent": {
+    "message": "Indentation",
+    "description": "Label for indentation size setting."
+  },
+  "settingIndentCompact": {
+    "message": "Compact",
+    "description": "Label for 0-indent (compact) mode."
+  },
+  "settingSortKeys": {
+    "message": "Sort keys alphabetically",
+    "description": "Label for the key sorting toggle."
   }
 }

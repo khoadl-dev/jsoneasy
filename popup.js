@@ -1,18 +1,45 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const checkbox = document.getElementById('hidePopupButton');
-  const label = document.getElementById('labelHideButton');
+  const hideButtonCheckbox = document.getElementById('hidePopupButton');
+  const sortKeysCheckbox = document.getElementById('sortKeys');
+  const indentRadios = document.getElementsByName('indent');
+
+  const labelHide = document.getElementById('labelHideButton');
+  const labelSort = document.getElementById('labelSortKeys');
+  const labelIndent = document.getElementById('labelIndent');
+  const labelIndentCompact = document.getElementById('labelIndentCompact');
   const helpIcon = document.getElementById('helpIconHideButton');
 
   // Initialize localized text
-  label.textContent = chrome.i18n.getMessage('settingHideButton');
+  labelHide.textContent = chrome.i18n.getMessage('settingHideButton');
+  labelSort.textContent = chrome.i18n.getMessage('settingSortKeys');
+  labelIndent.textContent = chrome.i18n.getMessage('settingIndent');
+  labelIndentCompact.textContent = chrome.i18n.getMessage('settingIndentCompact');
   helpIcon.title = chrome.i18n.getMessage('settingHideButtonHelp');
 
-  // Load saved setting
-  const result = await chrome.storage.local.get('hidePopupButton');
-  checkbox.checked = result.hidePopupButton || false;
+  // Load saved settings
+  const result = await chrome.storage.local.get(['hidePopupButton', 'sortKeys', 'indentSize']);
 
-  // Save setting when changed
-  checkbox.addEventListener('change', () => {
-    chrome.storage.local.set({ hidePopupButton: checkbox.checked });
+  hideButtonCheckbox.checked = result.hidePopupButton || false;
+  sortKeysCheckbox.checked = result.sortKeys || false;
+
+  const indentSize = result.indentSize !== undefined ? result.indentSize : 2;
+  const targetRadio = document.querySelector(`input[name="indent"][value="${indentSize}"]`);
+  if (targetRadio) {
+    targetRadio.checked = true;
+  }
+
+  // Save settings when changed
+  hideButtonCheckbox.addEventListener('change', () => {
+    chrome.storage.local.set({ hidePopupButton: hideButtonCheckbox.checked });
+  });
+
+  sortKeysCheckbox.addEventListener('change', () => {
+    chrome.storage.local.set({ sortKeys: sortKeysCheckbox.checked });
+  });
+
+  indentRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      chrome.storage.local.set({ indentSize: parseInt(radio.value, 10) });
+    });
   });
 });

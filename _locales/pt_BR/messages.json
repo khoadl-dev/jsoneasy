@@ -26,5 +26,17 @@
   "errorInvalidJSON": {
     "message": "Formato JSON inválido",
     "description": "Error message when JSON parsing fails."
+  },
+  "settingIndent": {
+    "message": "Indentação",
+    "description": "Label for indentation size setting."
+  },
+  "settingIndentCompact": {
+    "message": "Compacto",
+    "description": "Label for 0-indent (compact) mode."
+  },
+  "settingSortKeys": {
+    "message": "Ordenar chaves alfabeticamente",
+    "description": "Label for the key sorting toggle."
   }
 }
