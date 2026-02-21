@@ -35,6 +35,14 @@
     "message": "Compact",
     "description": "Label for 0-indent (compact) mode."
   },
+  "settingIndent2": {
+    "message": "2 spaces",
+    "description": "Label for 2-space indentation."
+  },
+  "settingIndent4": {
+    "message": "4 spaces",
+    "description": "Label for 4-space indentation."
+  },
   "settingSortKeys": {
     "message": "Sort keys alphabetically",
     "description": "Label for the key sorting toggle."

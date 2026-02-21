@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const labelSort = document.getElementById('labelSortKeys');
   const labelIndent = document.getElementById('labelIndent');
   const labelIndentCompact = document.getElementById('labelIndentCompact');
+  const labelIndent2 = document.getElementById('labelIndent2');
+  const labelIndent4 = document.getElementById('labelIndent4');
   const helpIcon = document.getElementById('helpIconHideButton');
 
   // Initialize localized text
@@ -14,6 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   labelSort.textContent = chrome.i18n.getMessage('settingSortKeys');
   labelIndent.textContent = chrome.i18n.getMessage('settingIndent');
   labelIndentCompact.textContent = chrome.i18n.getMessage('settingIndentCompact');
+  labelIndent2.textContent = chrome.i18n.getMessage('settingIndent2');
+  labelIndent4.textContent = chrome.i18n.getMessage('settingIndent4');
   helpIcon.title = chrome.i18n.getMessage('settingHideButtonHelp');
 
   // Load saved settings

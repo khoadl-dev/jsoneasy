@@ -35,6 +35,14 @@
     "message": "緊湊",
     "description": "Label for 0-indent (compact) mode."
   },
+  "settingIndent2": {
+    "message": "2 個空格",
+    "description": "Label for 2-space indentation."
+  },
+  "settingIndent4": {
+    "message": "4 個空格",
+    "description": "Label for 4-space indentation."
+  },
   "settingSortKeys": {
     "message": "按字母順序排列鍵",
     "description": "Label for the key sorting toggle."
