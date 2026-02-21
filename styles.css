@@ -192,24 +192,22 @@
 }
 /* Syntax Highlighting */
 .je-key {
-  color: #880000;
+  color: #d93025;
   font-weight: 600;
 }
 
 .je-string {
-  color: #007700;
+  color: #188038;
 }
 
 .je-number {
-  color: #0000ff;
+  color: #1a73e8;
 }
 
 .je-boolean {
-  color: #ff8c00;
-  font-weight: 600;
+  color: #f29900;
 }
 
 .je-null {
   color: #808080;
-  font-style: italic;
 }

@@ -41,10 +41,10 @@ Styles are defined in `styles.css` using easy-to-customize classes:
 
 | Token Type | CSS Class | Color | Description |
 | :--- | :--- | :--- | :--- |
-| **Key** | `.je-key` | Red (#880000) | Bold, grouped with the colon. |
-| **String** | `.je-string` | Green (#007700) | Standard JSON values. |
-| **Number** | `.je-number` | Blue (#0000ff) | Handles all numeric formats. |
-| **Boolean** | `.je-boolean` | Orange (#ff8c00) | Distinct color for true/false. |
+| **Key** | `.je-key` | Coral (#d93025) | Bold, matches error state for design consistency. |
+| **String** | `.je-string` | Green (#188038) | Deep green for high readability. |
+| **Number** | `.je-number` | Blue (#1a73e8) | Standard Material/Chrome blue. |
+| **Boolean** | `.je-boolean` | Gold (#f29900) | Weighted orange/gold. |
 | **Null** | `.je-null` | Gray (#808080) | Italicized for semantic clarity. |
 
 ## Testing Strategy
