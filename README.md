@@ -8,5 +8,5 @@
 
 ## Packaging
 
-1. Run `zip -r jsoneasy.zip . -x "README.md" "docs/*" ".git/*"`
+1. Run `zip -r jsoneasy.zip . -x "README.md" "tests/*" "docs/*" ".git/*"`
 2. Upload `jsoneasy.zip` to [Chrome Web Store](https://chrome.google.com/webstore/developer/dashboard).
